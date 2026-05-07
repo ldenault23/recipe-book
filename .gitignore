@@ -1,0 +1,23 @@
+# dependencies
+node_modules/
+.next/
+
+# env
+.env
+.env.local
+.env*.local
+
+# data (keep the file but ignore local changes in prod)
+# data/recipes.json  ← committed to repo for local dev
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# vercel
+.vercel
