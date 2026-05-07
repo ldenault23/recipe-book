@@ -4,10 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Recipe } from '@/lib/store';
 
 export default function AdminPage() {
-  const [authenticated, setAuthenticated] = useState(false);
-  const [password, setPassword] = useState('');
-  const [passwordError, setPasswordError] = useState(false);
-
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -22,8 +18,6 @@ export default function AdminPage() {
   const [manualInstructions, setManualInstructions] = useState('');
   const [manualTags, setManualTags] = useState('');
 
-  const adminPassword = 'mealprep2024'; // change via ADMIN_PASSWORD env var
-
   const loadRecipes = useCallback(async () => {
     setRecipesLoading(true);
     try {
@@ -37,20 +31,8 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
-    if (authenticated) loadRecipes();
-  }, [authenticated, loadRecipes]);
-
-  // ── Auth ─────────────────────────────────────────────────
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    // In production, compare against env var server-side
-    if (password === adminPassword) {
-      setAuthenticated(true);
-      setPasswordError(false);
-    } else {
-      setPasswordError(true);
-    }
-  };
+    loadRecipes();
+  }, [loadRecipes]);
 
   // ── Import from URL ──────────────────────────────────────
   const handleUrlImport = async (e: React.FormEvent) => {
@@ -63,14 +45,18 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/recipes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url.trim(), tags: [] }),
       });
 
       const data = await res.json();
 
       if (res.ok && data.recipe) {
-        setMessage({ type: 'success', text: `✅ "${data.recipe.title}" imported!` });
+        const msg = `✅ "${data.recipe.title}" imported!`;
+        setMessage({
+          type: 'success',
+          text: data.warning ? `${msg} ⚠️ ${data.warning}` : msg,
+        });
         setUrl('');
         loadRecipes();
       } else {
@@ -97,7 +83,7 @@ export default function AdminPage() {
     try {
       const res = await fetch('/api/recipes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-password': password },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           title: manualTitle.trim(),
           ingredients: manualIngredients
@@ -140,7 +126,6 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/recipes/${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-password': password },
       });
       if (res.ok) {
         setRecipes(prev => prev.filter(r => r.id !== id));
@@ -150,43 +135,6 @@ export default function AdminPage() {
       setMessage({ type: 'error', text: 'Failed to remove recipe.' });
     }
   };
-
-  // ── Login screen ─────────────────────────────────────────
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-lg p-8 max-w-sm w-full">
-          <h1 className="font-display text-2xl font-bold text-charcoal text-center mb-2">
-            🔒 Recipe Admin
-          </h1>
-          <p className="text-sm text-gray-400 text-center mb-6">
-            Enter the admin password to manage recipes
-          </p>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Password"
-              className={`w-full px-4 py-3 rounded-xl border ${
-                passwordError ? 'border-red-300' : 'border-gray-200'
-              } focus:outline-none focus:ring-2 focus:ring-terracotta/30 text-charcoal`}
-              autoFocus
-            />
-            {passwordError && (
-              <p className="text-red-500 text-sm">Wrong password.</p>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-terracotta text-white py-3 rounded-xl font-medium hover:bg-terracotta/90 transition-colors"
-            >
-              Enter
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
 
   // ── Admin panel ──────────────────────────────────────────
   return (

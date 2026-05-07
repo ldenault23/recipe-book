@@ -22,18 +22,27 @@ export async function POST(req: NextRequest) {
       const scraped = await scrapeRecipe(body.url);
       if (!scraped) {
         return NextResponse.json(
-          { error: 'Could not extract recipe from this URL. Try adding manually.' },
+          { error: 'Could not extract anything from this URL. The site may block automated access, or the recipe might be behind a login. Try adding manually or use a different recipe site.' },
           { status: 422 }
         );
       }
 
+      // Warn if partial extraction
+      const warning = scraped.partial
+        ? 'Only the title was found — ingredients and instructions could not be extracted. You can edit the recipe after importing.'
+        : scraped.ingredients.length === 0
+          ? 'Recipe imported but no ingredients were found. You may need to add them manually.'
+          : undefined;
+
+      const { partial, ...recipeData } = scraped;
+
       const recipe = await addRecipe({
-        ...scraped,
+        ...recipeData,
         tags: body.tags || [],
         notes: body.notes || '',
       });
 
-      return NextResponse.json({ recipe, scraped: true });
+      return NextResponse.json({ recipe, scraped: true, warning });
     }
 
     // Mode 2: Manual entry

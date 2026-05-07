@@ -19,17 +19,10 @@ export async function GET(
 
 // DELETE /api/recipes/[id] — remove a recipe
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // Simple auth check via password header
-    const auth = req.headers.get('x-admin-password');
-    const adminPassword = process.env.ADMIN_PASSWORD || 'mealprep2024';
-    if (auth !== adminPassword) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const removed = await removeRecipe(params.id);
     if (!removed) {
       return NextResponse.json({ error: 'Recipe not found' }, { status: 404 });
