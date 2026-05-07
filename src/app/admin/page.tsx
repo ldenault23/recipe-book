@@ -287,7 +287,7 @@ export default function AdminPage() {
                 type="text"
                 value={manualTags}
                 onChange={e => setManualTags(e.target.value)}
-                placeholder="Tags: breakfast, chicken, quick (comma-separated)"
+                placeholder="Meal: breakfast, lunch, or dinner"
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-terracotta/30 text-charcoal"
               />
               <button

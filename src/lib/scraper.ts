@@ -43,20 +43,22 @@ export async function scrapeRecipe(url: string): Promise<ScrapedRecipe | null> {
     const $ = cheerio.load(html);
 
     // ── Method 1: JSON-LD structured data ─────────────────
-    const jsonLdScripts = $('script[type="application/ld+json"]');
-    for (const el of jsonLdScripts) {
+    let foundRecipe: ScrapedRecipe | null = null;
+    $('script[type="application/ld+json"]').each((_i, el) => {
+      if (foundRecipe) return;
       try {
         const text = $(el).html();
-        if (!text) continue;
+        if (!text) return;
         const parsed = JSON.parse(text);
         const recipe = findRecipeInJsonLd(parsed, url);
         if (recipe && recipe.title && recipe.ingredients.length > 0) {
-          return recipe;
+          foundRecipe = recipe;
         }
       } catch {
         // skip malformed JSON-LD
       }
-    }
+    });
+    if (foundRecipe) return foundRecipe;
 
     // ── Method 2: Basic HTML fallback ─────────────────────
     const fallback = extractFromHtml($, url);
