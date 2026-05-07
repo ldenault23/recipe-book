@@ -110,15 +110,25 @@ async function scrapeWithSpoonacular(url: string): Promise<ScrapedRecipe | null>
   if (!SPOONACULAR_KEY) return null;
 
   try {
-    const apiUrl = `https://api.spoonacular.com/recipes/extract?url=${encodeURIComponent(url)}&apiKey=${SPOONACULAR_KEY}`;
+    const apiUrl = `https://api.spoonacular.com/recipes/extract?url=${encodeURIComponent(url)}&forceExtraction=true`;
     const res = await fetch(apiUrl, {
-      signal: AbortSignal.timeout(20000),
+      headers: { 'x-api-key': SPOONACULAR_KEY },
+      signal: AbortSignal.timeout(25000),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`Spoonacular API returned ${res.status}: ${res.statusText}`);
+      return null;
+    }
 
     const data = await res.json();
-    if (!data || !data.title) return null;
+    console.log(`Spoonacular response keys: ${Object.keys(data).join(', ')}`);
+    console.log(`Title: ${data.title}, Ingredients: ${data.extendedIngredients?.length}, Instructions: ${data.analyzedInstructions?.length}`);
+
+    if (!data || !data.title) {
+      console.error('Spoonacular returned no title');
+      return null;
+    }
 
     const ingredients: string[] = (data.extendedIngredients || [])
       .map((i: { original?: string; name?: string }) => i.original || i.name || '')

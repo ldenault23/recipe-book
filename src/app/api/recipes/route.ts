@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllRecipes, addRecipe, type Recipe } from '@/lib/store';
 import { scrapeRecipe } from '@/lib/scraper';
 
+export const maxDuration = 30; // seconds (pro plan for >10)
+
 // GET /api/recipes — list all recipes
 export async function GET() {
   try {
@@ -19,12 +21,16 @@ export async function POST(req: NextRequest) {
 
     // Mode 1: Import from URL
     if (body.url) {
-      const scraped = await scrapeRecipe(body.url);
+      const debug: string[] = [];
+      const hasKey = !!process.env.SPOONACULAR_API_KEY;
+      debug.push(`Spoonacular key ${hasKey ? 'found' : 'MISSING'}`);
+
+      let scraped = await scrapeRecipe(body.url);
       if (!scraped) {
-        return NextResponse.json(
-          { error: 'Could not extract anything from this URL. The site may block automated access, or the recipe might be behind a login. Try adding manually or use a different recipe site.' },
-          { status: 422 }
-        );
+        return NextResponse.json({
+          error: 'Could not extract anything from this URL. The site may block automated access, or the recipe might be behind a login. Try adding manually or use a different recipe site.',
+          debug,
+        }, { status: 422 });
       }
 
       // Warn if partial extraction
@@ -42,7 +48,12 @@ export async function POST(req: NextRequest) {
         notes: body.notes || '',
       });
 
-      return NextResponse.json({ recipe, scraped: true, warning });
+      return NextResponse.json({
+        recipe,
+        scraped: true,
+        warning,
+        debug: [...debug, `Ingredients: ${recipeData.ingredients.length}, Instructions: ${recipeData.instructions.length}`],
+      });
     }
 
     // Mode 2: Manual entry

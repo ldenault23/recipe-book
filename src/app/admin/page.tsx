@@ -53,16 +53,18 @@ export default function AdminPage() {
 
       if (res.ok && data.recipe) {
         const msg = `✅ "${data.recipe.title}" imported!`;
+        const dbg = data.debug ? `\n\n${data.debug.join(' | ')}` : '';
         setMessage({
           type: 'success',
-          text: data.warning ? `${msg} ⚠️ ${data.warning}` : msg,
+          text: data.warning ? `${msg} ⚠️ ${data.warning}${dbg}` : `${msg}${dbg}`,
         });
         setUrl('');
         loadRecipes();
       } else {
+        const dbg = data.debug ? `\n\nDebug: ${data.debug.join(' | ')}` : '';
         setMessage({
           type: 'error',
-          text: data.error || 'Could not import recipe. Try adding manually.',
+          text: (data.error || 'Could not import recipe. Try adding manually.') + dbg,
         });
       }
     } catch {
