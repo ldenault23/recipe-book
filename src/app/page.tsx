@@ -1,24 +1,30 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import dynamic from 'next/dynamic';
 import type { Recipe } from '@/lib/store';
 import RecipeCard from '@/components/RecipeCard';
 
-const TAGS = [
-  'breakfast',
-  'lunch',
-  'dinner',
-  'snack',
-  'dessert',
-  'quick',
-  'vegetarian',
-  'chicken',
-  'beef',
-  'seafood',
-  'pasta',
-  'soup',
-  'salad',
-] as const;
+const QRCodeSVG = dynamic(
+  () => import('qrcode.react').then((mod) => ({ default: mod.QRCodeSVG })),
+  { ssr: false, loading: () => <div style={{ width: 200, height: 200 }} className="bg-gray-100 rounded-xl animate-pulse" /> }
+);
+
+function QrCodeSvg({ url, size = 200 }: { url: string; size?: number }) {
+  return (
+    <div className="bg-white p-4 rounded-xl shadow-md inline-block">
+      <QRCodeSVG
+        value={url}
+        size={size}
+        level="M"
+        includeMargin
+        className="rounded-lg"
+      />
+    </div>
+  );
+}
+
+const MEALS = ['breakfast', 'lunch', 'dinner'] as const;
 
 export default function HomePage() {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -56,6 +62,9 @@ export default function HomePage() {
       result = result.filter((r) => r.tags?.includes(selectedTag));
     }
 
+    // Sort by date added (newest first)
+    result = [...result].sort((a, b) => new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime());
+
     return result;
   }, [recipes, search, selectedTag]);
 
@@ -90,11 +99,8 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="font-display text-4xl md:text-5xl font-bold text-charcoal">
-                🥘 Meal Prep
-                <span className="block text-sage text-2xl md:text-3xl mt-1">
-                  Recipe Book
-                </span>
+              <h1 className="text-4xl md:text-5xl font-light tracking-tight text-charcoal">
+                Olivia's Recipe Book
               </h1>
               <p className="text-gray-400 mt-2 text-sm">
                 {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} saved
@@ -123,7 +129,7 @@ export default function HomePage() {
         {showQr && (
           <div className="bg-white rounded-2xl shadow-md p-6 mb-6 text-center">
             <h2 className="font-display text-lg font-bold text-charcoal mb-3">
-              Scan for the Recipe Book
+              Scan for Olivia's Recipe Book
             </h2>
             <p className="text-sm text-gray-400 mb-4">
               Print this QR code and put it on your binder cover.
@@ -152,7 +158,7 @@ export default function HomePage() {
             className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-charcoal focus:outline-none focus:ring-2 focus:ring-terracotta/30"
           >
             <option value="">All categories</option>
-            {TAGS.map((tag) => (
+            {MEALS.map((tag) => (
               <option key={tag} value={tag}>
                 {tag.charAt(0).toUpperCase() + tag.slice(1)}
               </option>
@@ -200,7 +206,7 @@ export default function HomePage() {
                   No recipes yet
                 </h2>
                 <p className="text-gray-400 mb-6">
-                  This recipe book is waiting for its first meal prep recipe!
+                  This recipe book is waiting for its first recipe!
                 </p>
                 <a
                   href="/admin"
@@ -232,30 +238,8 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="text-center py-8 text-gray-300 text-xs">
-        Recipe Book — scan the QR code on your binder to view all recipes
+        Olivia's Recipe Book — scan the QR code on your binder to view all recipes
       </footer>
-    </div>
-  );
-}
-
-// Inline QR code component (client-only to avoid SSR issues)
-import dynamic from 'next/dynamic';
-
-const QRCodeSVG = dynamic(
-  () => import('qrcode.react').then((mod) => ({ default: mod.QRCodeSVG })),
-  { ssr: false, loading: () => <div style={{ width: 200, height: 200 }} className="bg-gray-100 rounded-xl animate-pulse" /> }
-);
-
-function QrCodeSvg({ url, size = 200 }: { url: string; size?: number }) {
-  return (
-    <div className="bg-white p-4 rounded-xl shadow-md inline-block">
-      <QRCodeSVG
-        value={url}
-        size={size}
-        level="M"
-        includeMargin
-        className="rounded-lg"
-      />
     </div>
   );
 }
