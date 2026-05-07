@@ -1,7 +1,9 @@
-/** Robust recipe scraper — hunts JSON-LD recursively, parses microdata,
- *  and falls back to broad HTML extraction across common recipe site patterns. */
+/** Robust recipe scraper — tries Spoonacular API first, then falls back to
+ *  recursive JSON-LD, microdata, and broad HTML extraction. */
 
 import * as cheerio from 'cheerio';
+
+const SPOONACULAR_KEY = process.env.SPOONACULAR_API_KEY || '';
 
 export interface ScrapedRecipe {
   title: string;
@@ -80,7 +82,75 @@ async function fetchHtml(url: string): Promise<string | null> {
   return null;
 }
 
-// ── Method 1: Recursive JSON-LD hunt ─────────────────────────
+// ── Method 1: Spoonacular API (primary) ────────────────────
+
+async function scrapeWithSpoonacular(url: string): Promise<ScrapedRecipe | null> {
+  if (!SPOONACULAR_KEY) return null;
+
+  try {
+    const apiUrl = `https://api.spoonacular.com/recipes/extract?url=${encodeURIComponent(url)}&apiKey=${SPOONACULAR_KEY}`;
+    const res = await fetch(apiUrl, {
+      signal: AbortSignal.timeout(20000),
+    });
+
+    if (!res.ok) return null;
+
+    const data = await res.json();
+    if (!data || !data.title) return null;
+
+    const ingredients: string[] = (data.extendedIngredients || [])
+      .map((i: { original?: string; name?: string }) => i.original || i.name || '')
+      .filter(Boolean);
+
+    const instructions: string[] = [];
+    if (Array.isArray(data.analyzedInstructions)) {
+      for (const section of data.analyzedInstructions) {
+        if (section.steps) {
+          for (const step of section.steps) {
+            if (step.step) instructions.push(cleanText(step.step));
+          }
+        }
+      }
+    }
+    // Fallback to plain instructions string
+    if (instructions.length === 0 && data.instructions) {
+      const $ = cheerio.load(`<div>${data.instructions}</div>`);
+      $('li, p').each((_i, el) => {
+        const text = cleanText($(el).text());
+        if (text && text.length > 5) instructions.push(text);
+      });
+      if (instructions.length === 0) {
+        instructions.push(cleanText(data.instructions));
+      }
+    }
+
+    return {
+      title: data.title || '',
+      description: data.summary
+        ? cleanText(data.summary.replace(/<[^>]*>/g, '')).slice(0, 300)
+        : undefined,
+      imageUrl: data.image || undefined,
+      sourceUrl: data.sourceUrl || url,
+      sourceName: data.sourceName || extractSourceName(url),
+      ingredients,
+      instructions,
+      prepTime: data.preparationMinutes
+        ? `${data.preparationMinutes} min`
+        : undefined,
+      cookTime: data.cookingMinutes
+        ? `${data.cookingMinutes} min`
+        : undefined,
+      totalTime: data.readyInMinutes
+        ? `${data.readyInMinutes} min`
+        : undefined,
+      servings: data.servings ? String(data.servings) : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
+// ── Method 2: Recursive JSON-LD hunt ────────────────────────
 
 function huntJsonLdRecursive(
   data: unknown,
@@ -222,7 +292,7 @@ function extractImageUrl(image: unknown): string | undefined {
   return undefined;
 }
 
-// ── Method 2: Microdata parsing ──────────────────────────────
+// ── Method 3: Microdata parsing ──────────────────────────────
 
 function extractFromMicrodata(
   $: cheerio.CheerioAPI,
@@ -283,7 +353,7 @@ function extractFromMicrodata(
   };
 }
 
-// ── Method 3: Broad HTML fallback ────────────────────────────
+// ── Method 4: Broad HTML fallback ────────────────────────────
 
 function extractFromHtml(
   $: cheerio.CheerioAPI,
@@ -456,12 +526,21 @@ function extractFromHtml(
 // ── Main export ──────────────────────────────────────────────
 
 export async function scrapeRecipe(url: string): Promise<ScrapedRecipe | null> {
+  // 1. Try Spoonacular API (most reliable)
+  if (SPOONACULAR_KEY) {
+    const spoonResult = await scrapeWithSpoonacular(url);
+    if (spoonResult && spoonResult.title) {
+      return spoonResult;
+    }
+  }
+
+  // 2. Fall back to local scraping
   const html = await fetchHtml(url);
   if (!html) return null;
 
   const $ = cheerio.load(html);
 
-  // 1. Try JSON-LD (recursive hunt — handles @graph, mainEntity, nesting)
+  // 3. Try JSON-LD (recursive hunt — handles @graph, mainEntity, nesting)
   const scripts = $('script[type="application/ld+json"]').toArray();
   for (const el of scripts) {
     try {
@@ -477,13 +556,13 @@ export async function scrapeRecipe(url: string): Promise<ScrapedRecipe | null> {
     }
   }
 
-  // 2. Try microdata
+  // 4. Try microdata
   const micro = extractFromMicrodata($, url);
   if (micro && micro.title && micro.ingredients.length > 0) {
     return micro;
   }
 
-  // 3. Broad HTML fallback
+  // 5. Broad HTML fallback
   const htmlFallback = extractFromHtml($, url);
   if (htmlFallback && htmlFallback.title) {
     return htmlFallback;
