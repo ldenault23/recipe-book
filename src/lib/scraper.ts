@@ -53,8 +53,10 @@ async function fetchHtml(url: string): Promise<string | null> {
   const USER_AGENTS = [
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
   ];
 
+  // Try direct fetch first
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
       const ua = USER_AGENTS[attempt % USER_AGENTS.length];
@@ -64,21 +66,41 @@ async function fetchHtml(url: string): Promise<string | null> {
           Accept:
             'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
           'Accept-Language': 'en-US,en;q=0.5',
+          'Cache-Control': 'no-cache',
         },
         signal: AbortSignal.timeout(15000),
       });
 
-      if (!response.ok) {
-        if (attempt < 2) continue;
-        return null;
+      if (response.ok) {
+        const text = await response.text();
+        if (text && text.length > 500) return text; // got real content
       }
-
-      return await response.text();
     } catch {
-      if (attempt < 2) continue;
-      return null;
+      // try next
     }
   }
+
+  // Fallback: try via textise dot iitty proxy
+  const PROXIES = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  ];
+
+  for (const proxyUrl of PROXIES) {
+    try {
+      const response = await fetch(proxyUrl, {
+        headers: { 'User-Agent': USER_AGENTS[0] },
+        signal: AbortSignal.timeout(15000),
+      });
+      if (response.ok) {
+        const text = await response.text();
+        if (text && text.length > 500) return text;
+      }
+    } catch {
+      // try next proxy
+    }
+  }
+
   return null;
 }
 
