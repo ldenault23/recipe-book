@@ -22,39 +22,46 @@ export async function POST(req: NextRequest) {
     // Mode 1: Import from URL
     if (body.url) {
       const debug: string[] = [];
-      const hasKey = !!process.env.SPOONACULAR_API_KEY;
-      debug.push(`Spoonacular key ${hasKey ? 'found' : 'MISSING'}`);
+      
+      try {
+        const hasKey = !!process.env.SPOONACULAR_API_KEY;
+        debug.push(`Spoonacular key ${hasKey ? 'found' : 'MISSING'}`);
 
-      let scraped = await scrapeRecipe(body.url);
-      if (!scraped) {
+        let scraped = await scrapeRecipe(body.url);
+        if (!scraped) {
+          return NextResponse.json({
+            error: 'Could not extract anything from this URL. The site may block automated access, or the recipe might be behind a login. Try adding manually or use a different recipe site.',
+            debug,
+          }, { status: 422 });
+        }
+
+        // Warn if partial extraction
+        const warning = scraped.partial
+          ? 'Only the title was found — ingredients and instructions could not be extracted. You can edit the recipe after importing.'
+          : scraped.ingredients.length === 0
+            ? 'Recipe imported but no ingredients were found. You may need to add them manually.'
+            : undefined;
+
+        const { partial, ...recipeData } = scraped;
+
+        const recipe = await addRecipe({
+          ...recipeData,
+          tags: body.tags || [],
+          notes: body.notes || '',
+        });
+
         return NextResponse.json({
-          error: 'Could not extract anything from this URL. The site may block automated access, or the recipe might be behind a login. Try adding manually or use a different recipe site.',
+          recipe,
+          scraped: true,
+          warning,
+          debug: [...debug, `Ingredients: ${recipeData.ingredients.length}, Instructions: ${recipeData.instructions.length}`],
+        });
+      } catch (scrapeErr: any) {
+        return NextResponse.json({
+          error: `Scraping failed: ${scrapeErr?.message || scrapeErr}`,
           debug,
-        }, { status: 422 });
+        }, { status: 500 });
       }
-
-      // Warn if partial extraction
-      const warning = scraped.partial
-        ? 'Only the title was found — ingredients and instructions could not be extracted. You can edit the recipe after importing.'
-        : scraped.ingredients.length === 0
-          ? 'Recipe imported but no ingredients were found. You may need to add them manually.'
-          : undefined;
-
-      const { partial, ...recipeData } = scraped;
-
-      const recipe = await addRecipe({
-        ...recipeData,
-        tags: body.tags || [],
-        notes: body.notes || '',
-      });
-
-      return NextResponse.json({
-        recipe,
-        scraped: true,
-        warning,
-        debug: [...debug, `Ingredients: ${recipeData.ingredients.length}, Instructions: ${recipeData.instructions.length}`],
-      });
-    }
 
     // Mode 2: Manual entry
     if (!body.title) {
