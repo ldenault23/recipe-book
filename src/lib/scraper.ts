@@ -45,7 +45,17 @@ function extractSourceName(url: string): string {
 }
 
 function cleanText(s: string): string {
-  return s.replace(/\s+/g, ' ').trim();
+  return s
+    .replace(/&#39;|&#x27;|&apos;/g, "'")
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 // ── Fetch with retry ─────────────────────────────────────────

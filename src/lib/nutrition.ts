@@ -7,8 +7,6 @@ export interface NutritionInfo {
   protein: string;
   carbs: string;
   fat: string;
-  fiber?: string;
-  sugar?: string;
   sourceUrl?: string;
 }
 
@@ -29,6 +27,8 @@ export async function getNutritionByRecipeId(
     if (!res.ok) return null;
     const data = await res.json();
 
+    if (!data.calories || data.calories === '0') return null;
+
     return {
       calories: data.calories || '?',
       protein: data.protein || '?',
@@ -47,34 +47,31 @@ export async function guessNutritionByIngredients(
 
   try {
     const res = await fetch(
-      `https://api.spoonacular.com/recipes/guessNutrition?apiKey=${SPOONACULAR_KEY}`,
+      'https://api.spoonacular.com/recipes/guessNutrition',
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': SPOONACULAR_KEY,
+        },
         body: JSON.stringify({
           title: 'Recipe',
           ingredientList: ingredients.join('\n'),
         }),
-        signal: AbortSignal.timeout(10000),
+        signal: AbortSignal.timeout(15000),
       }
     );
 
     if (!res.ok) return null;
     const data = await res.json();
 
+    if (!data.calories?.value) return null;
+
     return {
-      calories: data.calories?.value
-        ? `${Math.round(data.calories.value)} ${data.calories.unit}`
-        : '?',
-      protein: data.protein?.value
-        ? `${Math.round(data.protein.value)}${data.protein.unit}`
-        : '?',
-      carbs: data.carbs?.value
-        ? `${Math.round(data.carbs.value)}${data.carbs.unit}`
-        : '?',
-      fat: data.fat?.value
-        ? `${Math.round(data.fat.value)}${data.fat.unit}`
-        : '?',
+      calories: `${Math.round(data.calories.value)} ${data.calories.unit}`,
+      protein: `${Math.round(data.protein?.value || 0)}${data.protein?.unit || 'g'}`,
+      carbs: `${Math.round(data.carbs?.value || 0)}${data.carbs?.unit || 'g'}`,
+      fat: `${Math.round(data.fat?.value || 0)}${data.fat?.unit || 'g'}`,
     };
   } catch {
     return null;
