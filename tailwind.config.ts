@@ -7,12 +7,12 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: '#F2EDE4',
-        'cream-dark': '#E6DFD4',
-        sage: '#8A9A8D',
-        'sage-dark': '#6B7D6F',
-        terracotta: '#C4947A',
-        'terracotta-light': '#F0DED2',
+        cream: '#fbfbf4',
+        'cream-dark': '#e8e6d4',
+        sage: '#79852c',
+        'sage-dark': '#5e6a22',
+        terracotta: '#c4947a',
+        'terracotta-light': '#ebd5c5',
         charcoal: '#4A4038',
         warm: '#3D3226',
       },
