@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import Link from 'next/link';
 import type { Recipe } from '@/lib/store';
 
 interface Props {
@@ -10,42 +10,43 @@ interface Props {
 }
 
 export default function RecipeCard({ recipe, onDelete, showDelete }: Props) {
-  const [expanded, setExpanded] = useState(false);
-  const [deleting, setDeleting] = useState(false);
-
-  const handleDelete = async () => {
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (!onDelete || !confirm(`Remove "${recipe.title}"?`)) return;
-    setDeleting(true);
     onDelete(recipe.id);
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow">
+    <Link
+      href={`/recipe/${recipe.id}`}
+      className="block bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-lg transition-shadow group"
+    >
       {/* Image */}
       {recipe.imageUrl && (
         <div className="relative aspect-video overflow-hidden bg-gray-100">
           <img
             src={recipe.imageUrl}
             alt={recipe.title}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             onError={(e) => {
               (e.target as HTMLImageElement).style.display = 'none';
             }}
           />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
         </div>
       )}
 
       <div className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
-          <h3 className="font-display text-xl font-bold text-charcoal leading-tight">
+          <h3 className="font-display text-xl font-bold text-charcoal leading-tight group-hover:text-terracotta transition-colors">
             {recipe.title}
           </h3>
           {showDelete && onDelete && (
             <button
               onClick={handleDelete}
-              disabled={deleting}
-              className="shrink-0 text-sm text-red-400 hover:text-red-600 transition-colors disabled:opacity-50"
+              className="shrink-0 text-sm text-red-400 hover:text-red-600 transition-colors"
               title="Remove recipe"
             >
               ✕
@@ -55,14 +56,9 @@ export default function RecipeCard({ recipe, onDelete, showDelete }: Props) {
 
         {/* Source */}
         {recipe.sourceName && (
-          <a
-            href={recipe.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-sage hover:text-sage-dark transition-colors mt-1 inline-block"
-          >
-            via {recipe.sourceName} ↗
-          </a>
+          <span className="text-xs text-sage mt-1 inline-block">
+            via {recipe.sourceName}
+          </span>
         )}
 
         {/* Meta */}
@@ -98,69 +94,18 @@ export default function RecipeCard({ recipe, onDelete, showDelete }: Props) {
           </div>
         )}
 
-        {/* Description */}
+        {/* Description — fully shown now */}
         {recipe.description && (
-          <p className="text-sm text-gray-500 mt-3 line-clamp-2">
+          <p className="text-sm text-gray-500 mt-3 leading-relaxed">
             {recipe.description}
           </p>
         )}
 
-        {/* Expand toggle */}
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="mt-3 text-sm text-terracotta hover:text-terracotta/80 font-medium transition-colors"
-        >
-          {expanded ? 'Show less ▲' : 'View recipe ▼'}
-        </button>
-
-        {/* Expanded content */}
-        {expanded && (
-          <div className="mt-4 space-y-4 border-t pt-4">
-            {/* Ingredients */}
-            {recipe.ingredients.length > 0 && (
-              <div>
-                <h4 className="font-display text-sm font-bold text-charcoal mb-2">
-                  Ingredients
-                </h4>
-                <ul className="space-y-1">
-                  {recipe.ingredients.map((ing, i) => (
-                    <li key={i} className="text-sm text-gray-600 flex items-start gap-2">
-                      <span className="text-terracotta mt-1.5 shrink-0">•</span>
-                      {ing}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Instructions */}
-            {recipe.instructions.length > 0 && (
-              <div>
-                <h4 className="font-display text-sm font-bold text-charcoal mb-2">
-                  Instructions
-                </h4>
-                <ol className="space-y-2 list-decimal list-inside">
-                  {recipe.instructions.map((step, i) => (
-                    <li key={i} className="text-sm text-gray-600 pl-2">
-                      <span className="ml-1">{step}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            )}
-
-            {/* Notes */}
-            {recipe.notes && (
-              <div>
-                <h4 className="font-display text-sm font-bold text-charcoal mb-1">
-                  Notes
-                </h4>
-                <p className="text-sm text-gray-500 italic">{recipe.notes}</p>
-              </div>
-            )}
-          </div>
-        )}
+        {/* CTA */}
+        <div className="mt-4 text-sm font-medium text-terracotta group-hover:text-terracotta/80 transition-colors">
+          View recipe →
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }

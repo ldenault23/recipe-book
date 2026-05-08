@@ -1,28 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import dynamic from 'next/dynamic';
 import type { Recipe } from '@/lib/store';
 import RecipeCard from '@/components/RecipeCard';
-
-const QRCodeSVG = dynamic(
-  () => import('qrcode.react').then((mod) => ({ default: mod.QRCodeSVG })),
-  { ssr: false, loading: () => <div style={{ width: 200, height: 200 }} className="bg-gray-100 rounded-xl animate-pulse" /> }
-);
-
-function QrCodeSvg({ url, size = 200 }: { url: string; size?: number }) {
-  return (
-    <div className="bg-white p-4 rounded-xl shadow-md inline-block">
-      <QRCodeSVG
-        value={url}
-        size={size}
-        level="M"
-        includeMargin
-        className="rounded-lg"
-      />
-    </div>
-  );
-}
 
 const MEALS = ['breakfast', 'lunch', 'dinner'] as const;
 
@@ -31,7 +11,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
-  const [showQr, setShowQr] = useState(false);
 
   useEffect(() => {
     fetch('/api/recipes')
@@ -68,28 +47,11 @@ export default function HomePage() {
     return result;
   }, [recipes, search, selectedTag]);
 
-  const appUrl =
-    typeof window !== 'undefined'
-      ? window.location.origin
-      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-
   // Collect all tags from recipes
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
     recipes.forEach((r) => r.tags?.forEach((t) => tagSet.add(t)));
     return Array.from(tagSet).sort();
-  }, [recipes]);
-
-  // Printable recipe index (compact version for binder)
-  const printableRecipes = useMemo(() => {
-    return recipes.map((r) => ({
-      title: r.title,
-      sourceUrl: r.sourceUrl,
-      sourceName: r.sourceName,
-      tags: r.tags,
-      prepTime: r.prepTime,
-      cookTime: r.cookTime,
-    }));
   }, [recipes]);
 
   return (
@@ -107,12 +69,6 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <button
-                onClick={() => setShowQr(!showQr)}
-                className="text-sm px-4 py-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-              >
-                {showQr ? 'Hide QR' : '📱 QR Code'}
-              </button>
               <a
                 href="/admin"
                 className="text-sm px-4 py-2 rounded-xl bg-sage text-white hover:bg-sage-dark transition-colors"
@@ -125,24 +81,6 @@ export default function HomePage() {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* QR Code section */}
-        {showQr && (
-          <div className="bg-white rounded-2xl shadow-md p-6 mb-6 text-center">
-            <h2 className="font-display text-lg font-bold text-charcoal mb-3">
-              Scan for Olivia's Recipe Book
-            </h2>
-            <p className="text-sm text-gray-400 mb-4">
-              Print this QR code and put it on your binder cover.
-            </p>
-            <div className="flex justify-center">
-              {/* We render QR code with an iframe for simplicity; 
-                  the client component handles it */}
-              <QrCodeSvg url={appUrl} />
-            </div>
-            <p className="text-xs text-gray-300 mt-3 break-all">{appUrl}</p>
-          </div>
-        )}
-
         {/* Search + Filters */}
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <input
@@ -235,11 +173,6 @@ export default function HomePage() {
           </div>
         )}
       </div>
-
-      {/* Footer */}
-      <footer className="text-center py-8 text-gray-300 text-xs">
-        Olivia's Recipe Book — scan the QR code on your binder to view all recipes
-      </footer>
     </div>
   );
 }
