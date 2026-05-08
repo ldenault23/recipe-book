@@ -20,11 +20,11 @@ export default function RecipeCard({ recipe, onDelete, showDelete }: Props) {
   return (
     <Link
       href={`/recipe/${recipe.id}`}
-      className="block bg-white/80 backdrop-blur-sm rounded-2xl overflow-hidden border border-cream-dark hover:border-sage/20 hover:shadow-md transition-all group"
+      className="block bg-white/80 backdrop-blur-sm rounded-2xl border border-cream-dark hover:border-sage/20 hover:shadow-md transition-all group"
     >
       {/* Image */}
       {recipe.imageUrl && (
-        <div className="relative aspect-video overflow-hidden bg-gray-100">
+        <div className="relative aspect-video overflow-hidden rounded-t-2xl bg-gray-100">
           <img
             src={recipe.imageUrl}
             alt={recipe.title}
