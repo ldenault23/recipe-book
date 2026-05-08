@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Image from 'next/image';
 import type { Recipe } from '@/lib/store';
 import RecipeCard from '@/components/RecipeCard';
 import ChatWidget from '@/components/ChatWidget';
+import Logo from '@/components/Logo';
 
 const MEALS = ['breakfast', 'lunch', 'dinner'] as const;
 
@@ -63,16 +63,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <div className="relative h-16 md:h-20 w-64 md:w-80">
-                <Image
-                  src="/logo.png"
-                  alt="Olivia's Recipe Book"
-                  fill
-                  className="object-contain object-left"
-                  priority
-                  unoptimized
-                />
-              </div>
+              <Logo className="h-16 md:h-20 w-auto" />
               <p className="text-gray-400 mt-2 text-sm">
                 {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} saved
               </p>
