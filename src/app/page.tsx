@@ -62,7 +62,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="font-display text-4xl md:text-5xl italic font-semibold tracking-tight text-charcoal">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-charcoal">
                 Olivia's Recipe Book
               </h1>
               <p className="text-gray-400 mt-2 text-sm">
@@ -70,12 +70,6 @@ export default function HomePage() {
               </p>
             </div>
             <div className="flex gap-3">
-              <a
-                href="/assistant"
-                className="text-sm px-4 py-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
-              >
-                🤖 Assistant
-              </a>
               <a
                 href="/admin"
                 className="text-sm px-4 py-2 rounded-xl bg-sage text-white hover:bg-sage-dark transition-colors"
