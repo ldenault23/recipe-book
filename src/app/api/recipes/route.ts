@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAllRecipes, addRecipe, type Recipe } from '@/lib/store';
 import { scrapeRecipe } from '@/lib/scraper';
 
-export const maxDuration = 30; // seconds (pro plan for >10)
+export const maxDuration = 30;
 
 // GET /api/recipes — list all recipes
 export async function GET() {
@@ -21,47 +21,8 @@ export async function POST(req: NextRequest) {
 
     // Mode 1: Import from URL
     if (body.url) {
-      const debug: string[] = [];
-      
-      try {
-        const hasKey = !!process.env.SPOONACULAR_API_KEY;
-        debug.push(`Spoonacular key ${hasKey ? 'found' : 'MISSING'}`);
-
-        let scraped = await scrapeRecipe(body.url);
-        if (!scraped) {
-          return NextResponse.json({
-            error: 'Could not extract anything from this URL. The site may block automated access, or the recipe might be behind a login. Try adding manually or use a different recipe site.',
-            debug,
-          }, { status: 422 });
-        }
-
-        // Warn if partial extraction
-        const warning = scraped.partial
-          ? 'Only the title was found — ingredients and instructions could not be extracted. You can edit the recipe after importing.'
-          : scraped.ingredients.length === 0
-            ? 'Recipe imported but no ingredients were found. You may need to add them manually.'
-            : undefined;
-
-        const { partial, ...recipeData } = scraped;
-
-        const recipe = await addRecipe({
-          ...recipeData,
-          tags: body.tags || [],
-          notes: body.notes || '',
-        });
-
-        return NextResponse.json({
-          recipe,
-          scraped: true,
-          warning,
-          debug: [...debug, `Ingredients: ${recipeData.ingredients.length}, Instructions: ${recipeData.instructions.length}`],
-        });
-      } catch (scrapeErr: any) {
-        return NextResponse.json({
-          error: `Scraping failed: ${scrapeErr?.message || scrapeErr}`,
-          debug,
-        }, { status: 500 });
-      }
+      return await handleUrlImport(body.url, body.tags || [], body.notes || '');
+    }
 
     // Mode 2: Manual entry
     if (!body.title) {
@@ -88,10 +49,48 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json({ recipe, scraped: false });
-  } catch (err) {
+  } catch (err: any) {
     return NextResponse.json(
-      { error: 'Failed to add recipe' },
+      { error: `Failed: ${err?.message || err}` },
       { status: 500 }
     );
+  }
+}
+
+async function handleUrlImport(url: string, tags: string[], notes: string) {
+  const debug: string[] = [];
+  const hasKey = !!process.env.SPOONACULAR_API_KEY;
+  debug.push(`Spoonacular key ${hasKey ? 'found' : 'MISSING'}`);
+
+  try {
+    const scraped = await scrapeRecipe(url);
+    if (!scraped) {
+      return NextResponse.json({
+        error: 'Could not extract anything from this URL. The site may block automated access, or the recipe might be behind a login. Try adding manually or use a different recipe site.',
+        debug,
+      }, { status: 422 });
+    }
+
+    const warning = scraped.partial
+      ? 'Only the title was found — ingredients and instructions could not be extracted.'
+      : scraped.ingredients.length === 0
+        ? 'Recipe imported but no ingredients were found.'
+        : undefined;
+
+    const { partial, ...recipeData } = scraped;
+
+    const recipe = await addRecipe({ ...recipeData, tags, notes });
+
+    return NextResponse.json({
+      recipe,
+      scraped: true,
+      warning,
+      debug: [...debug, `Ingredients: ${recipeData.ingredients.length}, Instructions: ${recipeData.instructions.length}`],
+    });
+  } catch (scrapeErr: any) {
+    return NextResponse.json({
+      error: `Scraping failed: ${scrapeErr?.message || scrapeErr}`,
+      debug,
+    }, { status: 500 });
   }
 }
