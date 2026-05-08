@@ -75,13 +75,13 @@ export default function RecipeDetailPage() {
         {/* Back link */}
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-sm text-sage hover:text-sage-dark transition-colors mb-6"
+          className="inline-flex items-center gap-1 text-sm text-sage-dark hover:text-sage transition-colors mb-6"
         >
           ← Back to recipe book
         </Link>
 
         {/* Title & meta */}
-        <h1 className="font-display text-3xl md:text-4xl font-bold text-charcoal mb-3">
+        <h1 className="font-bold text-3xl md:text-4xl text-warm mb-3">
           {recipe.title}
         </h1>
 
@@ -90,7 +90,7 @@ export default function RecipeDetailPage() {
             href={recipe.sourceUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-sage hover:text-sage-dark transition-colors"
+            className="text-sm text-sage-dark hover:text-sage transition-colors"
           >
             via {recipe.sourceName} ↗
           </a>

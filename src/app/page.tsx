@@ -58,11 +58,11 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-cream">
       {/* Hero */}
-      <header className="bg-white border-b border-gray-100">
+      <header className="border-b border-cream-dark">
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-charcoal">
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-warm">
                 Olivia's Recipe Book
               </h1>
               <p className="text-gray-400 mt-2 text-sm">
@@ -89,12 +89,12 @@ export default function HomePage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search recipes, ingredients..."
-            className="flex-1 px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-terracotta/30 text-charcoal bg-white"
+            className="flex-1 px-4 py-3 rounded-2xl border border-cream-dark bg-white/60 focus:outline-none focus:ring-2 focus:ring-sage/20 text-warm placeholder-gray-400"
           />
           <select
             value={selectedTag || ''}
             onChange={(e) => setSelectedTag(e.target.value || null)}
-            className="px-4 py-3 rounded-xl border border-gray-200 bg-white text-charcoal focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+            className="px-4 py-3 rounded-2xl border border-cream-dark bg-white/60 text-warm focus:outline-none focus:ring-2 focus:ring-sage/20"
           >
             <option value="">All categories</option>
             {MEALS.map((tag) => (
@@ -114,10 +114,10 @@ export default function HomePage() {
                 onClick={() =>
                   setSelectedTag(selectedTag === tag ? null : tag)
                 }
-                className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
+                className={`text-xs px-3 py-1.5 rounded-full transition-colors font-medium ${
                   selectedTag === tag
                     ? 'bg-terracotta text-white'
-                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-200'
+                    : 'bg-white/60 text-gray-500 hover:bg-white border border-cream-dark'
                 }`}
               >
                 {tag}

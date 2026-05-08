@@ -7,13 +7,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: '#F5EFE6',
-        'cream-dark': '#EBE3D5',
-        sage: '#7C9082',
-        'sage-dark': '#5C6E62',
-        terracotta: '#C47A5A',
-        'terracotta-light': '#F0D5C3',
-        charcoal: '#2D2D2D',
+        cream: '#F2EDE4',
+        'cream-dark': '#E6DFD4',
+        sage: '#8A9A8D',
+        'sage-dark': '#6B7D6F',
+        terracotta: '#C4947A',
+        'terracotta-light': '#F0DED2',
+        charcoal: '#4A4038',
+        warm: '#3D3226',
       },
       fontFamily: {
         display: ['Playfair Display', 'Georgia', 'Cambria', 'serif'],
