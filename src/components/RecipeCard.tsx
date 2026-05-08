@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { Recipe } from '@/lib/store';
+import IngredientList from './IngredientList';
 
 interface Props {
   recipe: Recipe;
@@ -94,11 +95,11 @@ export default function RecipeCard({ recipe, onDelete, showDelete }: Props) {
           </div>
         )}
 
-        {/* Description — fully shown now */}
-        {recipe.description && (
-          <p className="text-sm text-gray-500 mt-3 leading-relaxed">
-            {recipe.description}
-          </p>
+        {/* Ingredient preview */}
+        {recipe.ingredients.length > 0 && (
+          <div className="mt-3">
+            <IngredientList ingredients={recipe.ingredients} compact />
+          </div>
         )}
 
         {/* CTA */}

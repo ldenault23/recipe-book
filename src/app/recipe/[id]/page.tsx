@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Recipe } from '@/lib/store';
 import type { NutritionInfo } from '@/lib/nutrition';
+import IngredientList from '@/components/IngredientList';
 
 export default function RecipeDetailPage() {
   const params = useParams();
@@ -162,21 +163,14 @@ export default function RecipeDetailPage() {
           </div>
         )}
 
-        {/* Ingredients */}
+        {/* Ingredients with metric/US toggle */}
         {recipe.ingredients.length > 0 && (
           <div className="mt-8">
             <h2 className="font-display text-xl font-bold text-charcoal mb-4">
               Ingredients
             </h2>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <ul className="space-y-2">
-                {recipe.ingredients.map((ing, i) => (
-                  <li key={i} className="flex items-start gap-3 text-gray-600 py-1 border-b border-gray-50 last:border-0">
-                    <span className="w-1.5 h-1.5 rounded-full bg-terracotta mt-2 shrink-0" />
-                    <span>{ing}</span>
-                  </li>
-                ))}
-              </ul>
+              <IngredientList ingredients={recipe.ingredients} />
             </div>
           </div>
         )}
