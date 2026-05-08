@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Recipe } from '@/lib/store';
 
 export default function AdminPage() {
+  const [authenticated, setAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -161,6 +165,54 @@ export default function AdminPage() {
       setMessage({ type: 'error', text: 'Failed to remove recipe.' });
     }
   };
+
+  // ── Auth ─────────────────────────────────────────────────
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    const adminPassword = '03072026';
+    if (password === adminPassword) {
+      setAuthenticated(true);
+      setPasswordError(false);
+    } else {
+      setPasswordError(true);
+    }
+  };
+
+  if (!authenticated) {
+    return (
+      <div className="min-h-screen bg-cream flex items-center justify-center p-4">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-md p-8 max-w-sm w-full border border-cream-dark">
+          <h1 className="font-bold text-2xl text-warm text-center mb-1">
+            Manage Recipes
+          </h1>
+          <p className="text-sm text-gray-400 text-center mb-6">
+            Enter the password to continue
+          </p>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input
+              type="password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Password"
+              className={`w-full px-4 py-3 rounded-2xl border ${
+                passwordError ? 'border-red-300' : 'border-cream-dark'
+              } bg-cream/50 focus:outline-none focus:ring-2 focus:ring-sage/20 text-warm`}
+              autoFocus
+            />
+            {passwordError && (
+              <p className="text-red-400 text-sm text-center">Wrong password</p>
+            )}
+            <button
+              type="submit"
+              className="w-full bg-sage text-white py-3 rounded-2xl font-medium hover:bg-sage-dark transition-colors"
+            >
+              Enter
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   // ── Admin panel ──────────────────────────────────────────
   return (
