@@ -7,6 +7,7 @@ export interface Recipe {
   imageUrl?: string;
   sourceUrl: string;
   sourceName?: string;
+  spoonacularId?: number;
   ingredients: string[];
   instructions: string[];
   prepTime?: string;

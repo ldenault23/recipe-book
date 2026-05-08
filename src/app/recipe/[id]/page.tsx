@@ -4,17 +4,29 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import type { Recipe } from '@/lib/store';
+import type { NutritionInfo } from '@/lib/nutrition';
 
 export default function RecipeDetailPage() {
   const params = useParams();
   const [recipe, setRecipe] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
+  const [nutrition, setNutrition] = useState<NutritionInfo | null>(null);
+  const [nutritionLoading, setNutritionLoading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/recipes/${params.id}`)
       .then((res) => res.json())
       .then((data) => {
         setRecipe(data.title ? data : null);
+        // Fetch nutrition
+        setNutritionLoading(true);
+        fetch(`/api/nutrition/${params.id}`)
+          .then((r) => r.json())
+          .then((n) => {
+            if (n.calories) setNutrition(n);
+          })
+          .catch(() => {})
+          .finally(() => setNutritionLoading(false));
       })
       .catch(() => setRecipe(null))
       .finally(() => setLoading(false));
@@ -132,6 +144,24 @@ export default function RecipeDetailPage() {
           </div>
         )}
 
+        {/* Nutrition */}
+        {nutritionLoading && (
+          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <p className="text-sm text-gray-400">Loading nutrition info...</p>
+          </div>
+        )}
+        {nutrition && (
+          <div className="mt-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+            <h3 className="font-display text-sm font-bold text-charcoal mb-3">Nutrition per serving</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <NutritionBadge label="Calories" value={nutrition.calories} color="terracotta" />
+              <NutritionBadge label="Protein" value={nutrition.protein} color="sage" />
+              <NutritionBadge label="Carbs" value={nutrition.carbs} color="amber" />
+              <NutritionBadge label="Fat" value={nutrition.fat} color="rose" />
+            </div>
+          </div>
+        )}
+
         {/* Ingredients */}
         {recipe.ingredients.length > 0 && (
           <div className="mt-8">
@@ -181,6 +211,22 @@ export default function RecipeDetailPage() {
           })}
         </p>
       </div>
+    </div>
+  );
+}
+
+function NutritionBadge({ label, value, color }: { label: string; value: string; color: string }) {
+  const colors: Record<string, string> = {
+    terracotta: 'bg-terracotta/10 text-terracotta',
+    sage: 'bg-sage/10 text-sage-dark',
+    amber: 'bg-amber-50 text-amber-700',
+    rose: 'bg-rose-50 text-rose-600',
+  };
+
+  return (
+    <div className={`rounded-xl p-3 text-center ${colors[color] || colors.sage}`}>
+      <div className="text-lg font-bold">{value}</div>
+      <div className="text-[10px] uppercase tracking-wider font-medium mt-0.5">{label}</div>
     </div>
   );
 }

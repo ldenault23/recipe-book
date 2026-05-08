@@ -11,13 +11,14 @@ export interface ScrapedRecipe {
   imageUrl?: string;
   sourceUrl: string;
   sourceName?: string;
+  spoonacularId?: number;
   ingredients: string[];
   instructions: string[];
   prepTime?: string;
   cookTime?: string;
   totalTime?: string;
   servings?: string;
-  partial?: boolean; // true if we got something but not everything
+  partial?: boolean;
 }
 
 // ── Helpers ──────────────────────────────────────────────────
@@ -164,6 +165,7 @@ async function scrapeWithSpoonacular(url: string): Promise<ScrapedRecipe | null>
       imageUrl: data.image || undefined,
       sourceUrl: data.sourceUrl || url,
       sourceName: data.sourceName || extractSourceName(url),
+      spoonacularId: data.id || undefined,
       ingredients,
       instructions,
       prepTime: data.preparationMinutes

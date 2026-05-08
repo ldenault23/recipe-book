@@ -52,14 +52,38 @@ export default function AdminPage() {
       const data = await res.json();
 
       if (res.ok && data.recipe) {
-        const msg = `✅ "${data.recipe.title}" imported!`;
         const dbg = data.debug ? `\n\n${data.debug.join(' | ')}` : '';
-        setMessage({
-          type: 'success',
-          text: data.warning ? `${msg} ⚠️ ${data.warning}${dbg}` : `${msg}${dbg}`,
-        });
+        let msg = `✅ "${data.recipe.title}" imported!`;
+        if (data.warning) msg += ` ⚠️ ${data.warning}`;
+        msg += dbg;
+
+        // Auto-tag with AI
+        setLoading(false);
         setUrl('');
         loadRecipes();
+        setMessage({ type: 'success', text: `${msg}\n\n🤖 Auto-tagging...` });
+
+        try {
+          const tagRes = await fetch('/api/ai/tag', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              title: data.recipe.title,
+              ingredients: data.recipe.ingredients,
+              instructions: data.recipe.instructions,
+            }),
+          });
+          const tagData = await tagRes.json();
+          if (tagData.tags?.length) {
+            setMessage({
+              type: 'success',
+              text: `${msg}\n\n🏷️ Suggested tags: ${tagData.tags.join(', ')}`,
+            });
+          }
+        } catch {
+          // tags failed silently
+        }
+        return;
       } else {
         const dbg = data.debug ? `\n\nDebug: ${data.debug.join(' | ')}` : '';
         setMessage({

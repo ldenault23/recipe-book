@@ -70,6 +70,12 @@ export default function HomePage() {
             </div>
             <div className="flex gap-3">
               <a
+                href="/assistant"
+                className="text-sm px-4 py-2 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-colors"
+              >
+                🤖 Assistant
+              </a>
+              <a
                 href="/admin"
                 className="text-sm px-4 py-2 rounded-xl bg-sage text-white hover:bg-sage-dark transition-colors"
               >
