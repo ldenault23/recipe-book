@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import Image from 'next/image';
 import type { Recipe } from '@/lib/store';
 import RecipeCard from '@/components/RecipeCard';
 import ChatWidget from '@/components/ChatWidget';
@@ -62,11 +63,16 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <img
-                src="/logo.png"
-                alt="Olivia's Recipe Book"
-                className="h-12 md:h-14 w-auto"
-              />
+              <div className="relative h-16 md:h-20 w-64 md:w-80">
+                <Image
+                  src="/logo.png"
+                  alt="Olivia's Recipe Book"
+                  fill
+                  className="object-contain object-left"
+                  priority
+                  unoptimized
+                />
+              </div>
               <p className="text-gray-400 mt-2 text-sm">
                 {recipes.length} recipe{recipes.length !== 1 ? 's' : ''} saved
               </p>
