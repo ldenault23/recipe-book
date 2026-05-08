@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import type { Recipe } from '@/lib/store';
 import RecipeCard from '@/components/RecipeCard';
+import ChatWidget from '@/components/ChatWidget';
 
 const MEALS = ['breakfast', 'lunch', 'dinner'] as const;
 
@@ -179,6 +180,8 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      <ChatWidget />
     </div>
   );
 }
