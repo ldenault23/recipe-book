@@ -7,15 +7,16 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: '#FFF8F0',
+        cream: '#F5EFE6',
+        'cream-dark': '#EBE3D5',
         sage: '#7C9082',
         'sage-dark': '#5C6E62',
-        terracotta: '#D4845A',
+        terracotta: '#C47A5A',
         'terracotta-light': '#F0D5C3',
         charcoal: '#2D2D2D',
       },
       fontFamily: {
-        display: ['Georgia', 'Cambria', 'serif'],
+        display: ['Playfair Display', 'Georgia', 'Cambria', 'serif'],
         body: ['Inter', 'system-ui', 'sans-serif'],
       },
     },

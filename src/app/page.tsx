@@ -62,7 +62,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-8 md:py-12">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl md:text-5xl font-light tracking-tight text-charcoal">
+              <h1 className="font-display text-4xl md:text-5xl italic font-semibold tracking-tight text-charcoal">
                 Olivia's Recipe Book
               </h1>
               <p className="text-gray-400 mt-2 text-sm">
